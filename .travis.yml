@@ -1,24 +1,49 @@
 language: node_js
+os: linux
 services:
     - docker
+
 jobs:
     include:
-      - stage: test
-        name: "NPM Linting Tests"
+      - name: "Node 8 Linting Tests"
+        stage: test
         language: node_js
-        node_js:
-            - '8'
-            - '9'
-            - '10'
-            - '11'
-            - '12'
-            - '13'
+        node_js: '8'
         script:
             - npm run lint
-      - stage: deploy
-        name: "Docker Build Branches"
-        if: branch != master
-        language: minimal
+      - name: "Node 9 Linting Tests"
+        stage: test
+        language: node_js
+        node_js: '9'
+        script:
+            - npm run lint
+      - name: "Node 10 Linting Tests"
+        stage: test
+        language: node_js
+        node_js: '10'
+        script:
+            - npm run lint
+      - name: "Node 11 Linting Tests"
+        stage: test
+        language: node_js
+        node_js: '11'
+        script:
+            - npm run lint
+      - name: "Node 12 Linting Tests"
+        stage: test
+        language: node_js
+        node_js: '12'
+        script:
+            - npm run lint
+      - name: "Node 13 Linting Tests"
+        stage: test
+        language: node_js
+        node_js: '13'
+        script:
+            - npm run lint
+      - name: "Docker Build Branches"
+        if: branch != master AND tag IS blank 
+        language: shell
         stage: deploy
         before_script:
             - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -27,10 +52,11 @@ jobs:
             - docker tag tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
             - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT
             - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
-      - stage: deploy
-        name: "Docker Master Build"
+        after_script:
+            - docker logout
+      - name: "Docker Master Build"
         if: branch = master
-        language: minimal
+        language: shell
         stage: deploy
         before_script:
             - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -39,10 +65,11 @@ jobs:
             - docker tag tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
             - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT
             - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
-      - stage: deploy
-        name: "Docker Release Build"
+        after_script:
+            - docker logout
+      - name: "Docker Release Build"
         if: tag IS present
-        language: minimal
+        language: shell
         stage: deploy
         before_script:
             - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -51,6 +78,8 @@ jobs:
             - docker tag tf2automatic/tf2-automatic:$TRAVIS_TAG-release tf2automatic/tf2-automatic:latest
             - docker push tf2automatic/tf2-automatic:$TRAVIS_TAG-release
             - docker push tf2automatic/tf2-automatic:latest
+        after_script:
+            - docker logout
 
 notifications:
     email: false
