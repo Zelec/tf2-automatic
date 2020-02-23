@@ -3,7 +3,9 @@ services:
     - docker
 jobs:
     include:
-      - language: node_js
+      - stage: test
+        name: "NPM Linting Tests"
+        language: node_js
         node_js:
             - '8'
             - '9'
@@ -13,14 +15,42 @@ jobs:
             - '13'
         script:
             - npm run lint
-      - language: minimal
+      - stage: deploy
+        name: "Docker Build Branches"
+        if: branch != master
+        language: minimal
+        stage: deploy
         before_script:
             - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
         script:
-            - docker build -t tf2automatic/tf2-automatic:$TRAVIS_COMMIT .
-            - docker tag tf2automatic/tf2-automatic:$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
-            - docker push tf2automatic/tf2-automatic:$TRAVIS_COMMIT
+            - docker build -t tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT .
+            - docker tag tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT
             - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+      - stage: deploy
+        name: "Docker Master Build"
+        if: branch = master
+        language: minimal
+        stage: deploy
+        before_script:
+            - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+        script:
+            - docker build -t tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT .
+            - docker tag tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-$TRAVIS_COMMIT
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+      - stage: deploy
+        name: "Docker Release Build"
+        if: tag IS present
+        language: minimal
+        stage: deploy
+        before_script:
+            - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+        script:
+            - docker build -t tf2automatic/tf2-automatic:$TRAVIS_TAG-release .
+            - docker tag tf2automatic/tf2-automatic:$TRAVIS_TAG-release tf2automatic/tf2-automatic:latest
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_TAG-release
+            - docker push tf2automatic/tf2-automatic:latest
 
 notifications:
     email: false
