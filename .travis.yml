@@ -1,0 +1,30 @@
+language: node_js
+services:
+    - docker
+jobs:
+    include:
+      - language: node_js
+        node_js:
+            - '8'
+            - '9'
+            - '10'
+            - '11'
+            - '12'
+            - '13'
+        script:
+            - npm run lint
+      - language: minimal
+        before_script:
+            - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+        script:
+            - docker build -t tf2automatic/tf2-automatic:$TRAVIS_COMMIT
+            - docker tag tf2automatic/tf2-automatic:$TRAVIS_COMMIT tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_COMMIT
+            - docker push tf2automatic/tf2-automatic:$TRAVIS_BRANCH-latest
+
+notifications:
+    email: false
+env:
+    global:
+        - secure: FLj+fUFApQwuIuwh2Bp+qhggkd1G63LZhlkKGI/hJPocsknbJp3fN8Yj/+PLr/J5DPZsETQj26oA5qh/Mt6z0LngSKeKMQN/bhaeDq46FClUKKQNUd8jDZq2PlHrgIk/z8Yyl/fJgP2oW/Mp9kbxSNULxpIilo5+l/OxL+9mDQy07iMN2cAKEBKHRApl7Z9dt0ac7tva9yHXnVAAMLOPfX24AXBGFihUFNBNHbIJ8wUFjPVCcM62jujkujXDDqpBW6aaL7iEQQZ0pNdCy7pu2riFyw2XWLJbTKHJGnuONwI4Qw5pylKCk40XvUVEGVcYd6Umru2E5WYXQFwQv279XEnkB/odeVwfq4x7qv17cYBzKU8EZJr5pV5w8L83VVaGNeewfZ1wwKQeiQiANgtoxNjpl3HmaTerR5cScLDLabMha3ERRiMj6yMfZ/kr50ANxzJ+INQoQ7PRPQXVsl1Yw1EbiREIk7qDQAqobSm0p1Q/5D12CCOqT8JrR6K2ng64PoQ8ppsrWbaxmkhfUofRzf8YeidX9QvDVXD/4h7hr3g22s8iyVQCOmfY/5n8RSo3ZJ2/nuputJ9NA5kxW1sRnpiMsHLZ9TFDXGZ7obg9jb+lC8mEgt5L1MPfqm3EdrjenRgj/Fs1CGV8TeZepq7whObp0wHKQ+4frH1JGGaU77w=
+        - secure: OJZpNeBP9s1KqcV8CUXYOrmZVqcEE0VXa/qPX2ZDy2QgwZdqUfYsboZzoE83JWOSGGd5Od+aKyaXN3ouRCHGWSKrOzvYVFDsDaKSinKnpRZ9pM966j/detReC3nmuBy++NjE2MQUDfkaq4SIVmHPcpIktpYQ1N/5sCLqq/fCziR8YwAiUVVv0fhKLJ+9QDk81pEw0pM0du0WEKJOKUQob9QjCcE9yO1edCrcWKXAIXSGWxwvbYzrrnJNbufHPxd6nvsGrQ0IoUIdcAq0gXHvBJGA+Qa9vV/zGJwPg+SRbl7bxXNbVUD8VB26axNf6s6VlkZyqpwhvO5667bJ1n5OJmACO95R9HBnKzRAE2xHufVYq1WPErUm0khhC6xla7FXq/G+B02mAgbkg4vFQ4knmZy1BQwA9jKS2GS1oVFDeTfwG1kpyeG3dzzhgDAdkaxLHOtpnf3kPkCA6su9k6K/5mbwgVbW2nTs46Bomi6i+aKoT2bBJU/Ylrr0VXb/QV2Q9mC0MeZ4l96eODYym1Cj1Aum27oF65ZIfyMYenGg26un+yKGWUxlycwLlxOF1sNEL7+4fn5Wji1MsV2vT2+2/g8rhKvihSax3AFwmxOd6kzWIqXSa/ryJQpB4EjKqRtqQovDd++S0k9Fou1RNZ9+b2OJfXVs0PQ8yYr0BJxMk2w=
